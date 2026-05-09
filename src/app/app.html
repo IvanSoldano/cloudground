@@ -1,0 +1,17 @@
+<main class="main">
+  <div class="content">
+    <h1>Welcome to {{ title() }}</h1>
+    
+    <div class="card">
+      <h2>Cloudflare Pages Worker Data</h2>
+      
+      @if (apiData()) {
+        <pre>{{ apiData() | json }}</pre>
+      } @else {
+        <p>Loading data from /api/data...</p>
+      }
+    </div>
+  </div>
+</main>
+
+<router-outlet />
