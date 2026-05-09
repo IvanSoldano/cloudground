@@ -21,3 +21,7 @@ Root directory: /
 Build token: cloudground-worker build token
 Environment variables: None
 
+The error Failed: error occurred while installing tools or dependencies was caused by this specific line in your package.json:
+
+json
+"packageManager": "npm@11.12.1"
