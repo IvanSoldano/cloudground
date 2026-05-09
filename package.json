@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "dev:cloudflare": "cmd /c \"start npm run start & npx wrangler dev\""
+    "dev:cloudflare": "cmd /c \"start npm run start & npx wrangler dev --persist-to C:\\Users\\Usuario\\AppData\\Local\\Temp\\wrangler-state\""
   },
   "private": true,
   "dependencies": {
