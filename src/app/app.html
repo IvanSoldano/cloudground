@@ -1,17 +1,15 @@
 <main class="main">
   <div class="content">
-    <h1>Welcome to {{ title() }}</h1>
+    <!-- Router renders the TaskListComponent here based on the URL -->
+    <router-outlet></router-outlet>
     
-    <div class="card">
-      <h2>Cloudflare Pages Worker Data</h2>
-      
+    <div class="debug-card" style="margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; font-size: 0.8rem; color: #64748b;">
+      <h3>Debug: Cloudflare Data</h3>
       @if (apiData()) {
         <pre>{{ apiData() | json }}</pre>
       } @else {
-        <p>Loading data from /api/data...</p>
+        <p>Loading API data...</p>
       }
     </div>
   </div>
 </main>
-
-<router-outlet />
