@@ -1,5 +1,5 @@
 {
-  "name": "cloudground",
+  "name": "cloudground-worker",
   "main": "worker/index.ts",
   "compatibility_date": "2024-05-09",
   "assets": {
