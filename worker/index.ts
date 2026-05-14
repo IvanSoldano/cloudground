@@ -130,7 +130,7 @@ export default {
     // Proxy to Angular dev server during local development
     if (env.IS_LOCAL_DEV === 'true') {
       const proxyUrl = new URL(request.url);
-      proxyUrl.host = '127.0.0.1:4200';
+      proxyUrl.host = 'localhost:4200';
       proxyUrl.protocol = 'http:';
 
       try {
