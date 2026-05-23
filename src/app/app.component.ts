@@ -1,15 +1,15 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { JsonPipe } from '@angular/common';
-import { TaskListComponent } from './tasklist/tasklist.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, JsonPipe, TaskListComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.scss',
+  standalone: true,
+  imports: [RouterOutlet, JsonPipe],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss',
 })
-export class App {
+export class AppComponent {
   protected readonly title = signal('cloudground');
   protected readonly apiData = signal<any>(null);
 

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { TaskListComponent } from './tasklist/tasklist.component';
-import { LandingComponent } from './landing/landing.component';
+import { TaskListComponent } from './components/tasklist/tasklist.component';
+import { LandingComponent } from './components/landing/landing.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },

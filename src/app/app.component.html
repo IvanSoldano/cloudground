@@ -3,7 +3,7 @@
     <!-- Router renders the TaskListComponent here based on the URL -->
     <router-outlet></router-outlet>
     
-    <div class="debug-card" style="margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; font-size: 0.8rem; color: #64748b;">
+    <div class="debug-card">
       <h3>Debug: Cloudflare Data</h3>
       @if (apiData()) {
         <pre>{{ apiData() | json }}</pre>
