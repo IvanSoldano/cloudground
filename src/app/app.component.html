@@ -1,15 +1,20 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <span class="brand">☁️ CloudGround</span>
+  <nav class="nav-links">
+    <a mat-button routerLink="/tasks" routerLinkActive="active-link">
+      <mat-icon>task_alt</mat-icon> Tasks
+    </a>
+    <a mat-button routerLink="/gantt" routerLinkActive="active-link">
+      <mat-icon>bar_chart</mat-icon> Gantt
+    </a>
+    <a mat-button routerLink="/persons/new" routerLinkActive="active-link">
+      <mat-icon>person_add</mat-icon> New Person
+    </a>
+  </nav>
+</mat-toolbar>
+
 <main class="main">
   <div class="content">
-    <!-- Router renders the TaskListComponent here based on the URL -->
     <router-outlet></router-outlet>
-    
-    <div class="debug-card">
-      <h3>Debug: Cloudflare Data</h3>
-      @if (apiData()) {
-        <pre>{{ apiData() | json }}</pre>
-      } @else {
-        <p>Loading API data...</p>
-      }
-    </div>
   </div>
 </main>

@@ -1,5 +1,32 @@
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-right: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.active-link {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
 .main {
-  min-height: 100vh;
+  min-height: calc(100vh - 64px);
   padding: 2rem;
   display: flex;
   justify-content: center;
@@ -7,18 +34,5 @@
 
 .content {
   width: 100%;
-  max-width: 800px;
-}
-
-.debug-card {
-  margin-top: 2rem;
-  padding: 1.5rem;
-}
-
-pre {
-  background: rgba(0, 0, 0, 0.05);
-  padding: 1rem;
-  border-radius: 6px;
-  overflow-x: auto;
-  font-size: 0.9rem;
+  max-width: 1200px;
 }

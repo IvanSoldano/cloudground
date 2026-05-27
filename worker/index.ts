@@ -12,11 +12,20 @@ export interface Env {
 // Used as a fallback when Supabase credentials are not configured.
 // Resets on Worker restart — perfect for local development without a real DB.
 // ---------------------------------------------------------------------------
-let mockTasks = [
-  { id: '1', title: 'Design premium task interface (Backend)', completed: true,  created_at: new Date('2024-01-01').toISOString() },
-  { id: '2', title: 'Integrate Angular signals (Backend)',      completed: true,  created_at: new Date('2024-01-02').toISOString() },
+let mockPersons = [
+  { id: 'p1', name: 'Alice', surname: 'Smith', dni: '12345678', cuil: '20-12345678-0' },
+  { id: 'p2', name: 'Bob', surname: 'Jones', dni: '87654321', cuil: '20-87654321-0' },
+];
+
+let mockTasks: any[] = [
+  { id: '1', title: 'Design premium task interface (Backend)', completed: true,  created_at: new Date('2024-01-01').toISOString(), startDate: '2024-01-01', endDate: '2024-01-10', assigneeId: 'p1' },
+  { id: '2', title: 'Integrate Angular signals (Backend)',      completed: true,  created_at: new Date('2024-01-02').toISOString(), assigneeId: 'p2' },
   { id: '3', title: 'Deploy to Cloudflare Workers (Backend)',  completed: false, created_at: new Date('2024-01-03').toISOString() },
   { id: '4', title: 'Add dark mode support (Backend)',         completed: false, created_at: new Date('2024-01-04').toISOString() },
+];
+
+let mockTaskLogs: any[] = [
+  { id: 'l1', taskId: '1', fieldChanged: 'endDate', oldValue: '2024-01-08', newValue: '2024-01-10', justification: 'Design took longer', timestamp: new Date('2024-01-05').toISOString() }
 ];
 
 /**
@@ -37,9 +46,52 @@ export default {
     // Each route tries Supabase first; falls back to in-memory mock when
     // SUPABASE_URL / SUPABASE_ANON_KEY are not set in the environment.
     // -------------------------------------------------------------------------
+    if (url.pathname.startsWith('/api/persons')) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (request.method === 'GET') {
+        return new Response(JSON.stringify(mockPersons), { headers });
+      }
+      if (request.method === 'POST') {
+        const body: any = await request.json();
+        const newPerson = {
+          id: crypto.randomUUID(),
+          name: body.name,
+          surname: body.surname,
+          dni: body.dni,
+          cuil: body.cuil
+        };
+        mockPersons = [...mockPersons, newPerson];
+        return new Response(JSON.stringify(newPerson), { status: 201, headers });
+      }
+    }
+
     if (url.pathname.startsWith('/api/tasks')) {
       const headers = { 'Content-Type': 'application/json' };
       const supabase = tryGetSupabase(env); // null → use mock
+
+      // Check if it's a logs route
+      const logsMatch = url.pathname.match(/^\/api\/tasks\/([^\/]+)\/logs$/);
+      if (logsMatch) {
+        const taskId = logsMatch[1];
+        if (request.method === 'GET') {
+          const logs = mockTaskLogs.filter(l => l.taskId === taskId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          return new Response(JSON.stringify(logs), { headers });
+        }
+        if (request.method === 'POST') {
+          const body: any = await request.json();
+          const newLog = {
+            id: crypto.randomUUID(),
+            taskId,
+            fieldChanged: body.fieldChanged,
+            oldValue: body.oldValue,
+            newValue: body.newValue,
+            justification: body.justification,
+            timestamp: new Date().toISOString()
+          };
+          mockTaskLogs = [newLog, ...mockTaskLogs];
+          return new Response(JSON.stringify(newLog), { status: 201, headers });
+        }
+      }
 
       // GET /api/tasks — return all tasks, newest first
       if (request.method === 'GET') {
@@ -61,7 +113,12 @@ export default {
         if (supabase) {
           const { data, error } = await supabase
             .from('tasks')
-            .insert([{ title: body.title }])
+            .insert([{ 
+              title: body.title,
+              assigneeId: body.assigneeId,
+              startDate: body.startDate,
+              endDate: body.endDate
+            }])
             .select()
             .single();
           if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
@@ -72,31 +129,37 @@ export default {
           title: body.title,
           completed: false,
           created_at: new Date().toISOString(),
+          assigneeId: body.assigneeId,
+          startDate: body.startDate,
+          endDate: body.endDate
         };
         mockTasks = [newTask, ...mockTasks];
         return new Response(JSON.stringify(newTask), { status: 201, headers });
       }
 
-      // PUT /api/tasks/:id — toggle completed
+      // PUT /api/tasks/:id — update a task
       if (request.method === 'PUT') {
         const id = url.pathname.split('/').pop();
+        const body: any = await request.json().catch(() => ({}));
         if (supabase) {
           const { data: existing, error: fetchErr } = await supabase
-            .from('tasks').select('completed').eq('id', id).single();
+            .from('tasks').select('*').eq('id', id).single();
           if (fetchErr) return new Response(JSON.stringify({ error: fetchErr.message }), { status: 500, headers });
+          
+          const updates = Object.keys(body).length > 0 ? body : { completed: !existing.completed };
           const { data, error } = await supabase
             .from('tasks')
-            .update({ completed: !existing.completed })
+            .update(updates)
             .eq('id', id)
             .select()
             .single();
           if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
           return new Response(JSON.stringify(data), { headers });
         }
-        let updated: (typeof mockTasks)[0] | undefined;
+        let updated: any = undefined;
         mockTasks = mockTasks.map((t) => {
           if (t.id !== id) return t;
-          updated = { ...t, completed: !t.completed };
+          updated = Object.keys(body).length > 0 ? { ...t, ...body } : { ...t, completed: !t.completed };
           return updated;
         });
         return new Response(JSON.stringify(updated ?? { success: true }), { headers });

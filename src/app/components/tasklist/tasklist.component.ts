@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Task } from '../../models/task.model';
 import { TaskComponent } from '../task/task.component';
 import { TaskService } from '../../services/task.service';
+import { PersonService } from '../../services/person.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -124,6 +125,7 @@ import { MatListModule } from '@angular/material/list';
 })
 export class TaskListComponent implements OnInit {
   taskService = inject(TaskService);
+  personService = inject(PersonService);
   
   newTaskTitle = signal('');
 
@@ -133,6 +135,7 @@ export class TaskListComponent implements OnInit {
 
   ngOnInit() {
     this.taskService.loadTasks();
+    this.personService.loadPersons();
   }
 
   addTask() {
@@ -143,8 +146,8 @@ export class TaskListComponent implements OnInit {
     this.newTaskTitle.set('');
   }
 
-  toggleTask(id: string) {
-    this.taskService.toggleTask(id);
+  toggleTask(task: Task) {
+    this.taskService.updateTask(task.id, { completed: !task.completed }).subscribe();
   }
 
   deleteTask(id: string) {
