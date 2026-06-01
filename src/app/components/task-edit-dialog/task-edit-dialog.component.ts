@@ -149,8 +149,8 @@ export class TaskEditDialogComponent implements OnInit {
     title: [this.data.task.title, Validators.required],
     assigneeInput: [''],
     assigneeId: [this.data.task.assigneeId],
-    startDate: [this.data.task.startDate || ''],
-    endDate: [this.data.task.endDate || ''],
+    startDate: [this.data.task.plannedStartDate || ''],
+    endDate: [this.data.task.plannedEndDate || ''],
     justification: ['']
   });
 
@@ -158,7 +158,7 @@ export class TaskEditDialogComponent implements OnInit {
 
   ngOnInit() {
     this.personService.loadPersons();
-    
+
     // Set initial value for autocomplete based on existing assigneeId
     if (this.data.task.assigneeId) {
       const p = this.personService.persons().find(x => x.id === this.data.task.assigneeId);
@@ -185,8 +185,8 @@ export class TaskEditDialogComponent implements OnInit {
 
   private _filter(value: string): Person[] {
     const filterValue = value.toLowerCase();
-    return this.personService.persons().filter(p => 
-      p.name.toLowerCase().includes(filterValue) || 
+    return this.personService.persons().filter(p =>
+      p.name.toLowerCase().includes(filterValue) ||
       p.surname.toLowerCase().includes(filterValue) ||
       p.dni.toLowerCase().includes(filterValue) ||
       p.cuil.toLowerCase().includes(filterValue)
@@ -218,25 +218,25 @@ export class TaskEditDialogComponent implements OnInit {
     const updates: Partial<Task> = {
       title: val.title!,
       assigneeId: val.assigneeId || undefined,
-      startDate: val.startDate || undefined,
-      endDate: val.endDate || undefined
+      plannedStartDate: val.startDate || undefined,
+      plannedEndDate: val.endDate || undefined
     };
 
     const justification = val.justification?.trim();
 
     // Determine what changed for logs
     if (justification) {
-      if (originalTask.endDate !== val.endDate) {
+      if (originalTask.plannedEndDate !== val.endDate) {
         this.taskService.addActivityLog(originalTask.id, {
-          fieldChanged: 'endDate',
-          oldValue: originalTask.endDate,
+          fieldChanged: 'plannedEndDate',
+          oldValue: originalTask.plannedEndDate,
           newValue: val.endDate,
           justification
         }).subscribe();
-      } else if (originalTask.startDate !== val.startDate) {
+      } else if (originalTask.plannedStartDate !== val.startDate) {
         this.taskService.addActivityLog(originalTask.id, {
-          fieldChanged: 'startDate',
-          oldValue: originalTask.startDate,
+          fieldChanged: 'plannedStartDate',
+          oldValue: originalTask.plannedStartDate,
           newValue: val.startDate,
           justification
         }).subscribe();

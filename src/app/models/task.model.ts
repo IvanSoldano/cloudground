@@ -2,8 +2,8 @@ export interface Task {
   id: string;
   title: string;
   completed: boolean;
-  startDate?: string;
-  endDate?: string;
+  plannedStartDate?: string;
+  plannedEndDate?: string;
   assigneeId?: string;
 }
 

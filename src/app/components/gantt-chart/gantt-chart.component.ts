@@ -143,19 +143,19 @@ export class GanttChartComponent implements OnInit {
   taskService = inject(TaskService);
 
   ganttTasks = computed(() => {
-    return this.taskService.tasks().filter(t => t.startDate && t.endDate);
+    return this.taskService.tasks().filter(t => t.plannedStartDate && t.plannedEndDate);
   });
 
   days = computed(() => {
     const tasks = this.ganttTasks();
     if (tasks.length === 0) return [];
 
-    let min = new Date(tasks[0].startDate!);
-    let max = new Date(tasks[0].endDate!);
+    let min = new Date(tasks[0].plannedStartDate!);
+    let max = new Date(tasks[0].plannedEndDate!);
 
     for (const t of tasks) {
-      const start = new Date(t.startDate!);
-      const end = new Date(t.endDate!);
+      const start = new Date(t.plannedStartDate!);
+      const end = new Date(t.plannedEndDate!);
       if (start < min) min = start;
       if (end > max) max = end;
     }
@@ -184,16 +184,16 @@ export class GanttChartComponent implements OnInit {
 
   getGridColumn(task: Task): string {
     const allDays = this.days();
-    if (allDays.length === 0 || !task.startDate || !task.endDate) return '2 / 3';
+    if (allDays.length === 0 || !task.plannedStartDate || !task.plannedEndDate) return '2 / 3';
 
-    const start = new Date(task.startDate);
-    const end = new Date(task.endDate);
+    const start = new Date(task.plannedStartDate);
+    const end = new Date(task.plannedEndDate);
 
     // Normalize times to midnight to avoid timezone shift issues
-    start.setHours(0,0,0,0);
-    end.setHours(0,0,0,0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
     const firstDay = new Date(allDays[0]);
-    firstDay.setHours(0,0,0,0);
+    firstDay.setHours(0, 0, 0, 0);
 
     const msPerDay = 1000 * 60 * 60 * 24;
     const startIndex = Math.floor((start.getTime() - firstDay.getTime()) / msPerDay);

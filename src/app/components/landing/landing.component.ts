@@ -37,7 +37,7 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
         </mat-card-content>
         <mat-card-actions align="end">
-          <button mat-button class="docs-btn">Documentation</button>
+          <a mat-stroked-button routerLink="/login" class="login-btn">Sign In</a>
           <a mat-flat-button class="explore-btn" routerLink="/tasks">
             Explore Task List
             <mat-icon>arrow_forward</mat-icon>

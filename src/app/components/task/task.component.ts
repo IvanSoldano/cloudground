@@ -35,11 +35,11 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
       </div>
 
       <div matListItemLine class="task-dates">
-        @if (task().startDate) {
-          <span class="date-badge"><mat-icon inline>event</mat-icon> Start: {{ task().startDate }}</span>
+        @if (task().plannedStartDate) {
+          <span class="date-badge"><mat-icon inline>event</mat-icon> Start: {{ task().plannedStartDate }}</span>
         }
-        @if (task().endDate) {
-          <span class="date-badge"><mat-icon inline>event_available</mat-icon> Due: {{ task().endDate }}</span>
+        @if (task().plannedEndDate) {
+          <span class="date-badge"><mat-icon inline>event_available</mat-icon> Due: {{ task().plannedEndDate }}</span>
         }
       </div>
       

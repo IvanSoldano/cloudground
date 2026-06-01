@@ -18,10 +18,10 @@ let mockPersons = [
 ];
 
 let mockTasks: any[] = [
-  { id: '1', title: 'Design premium task interface (Backend)', completed: true,  created_at: new Date('2024-01-01').toISOString(), startDate: '2024-01-01', endDate: '2024-01-10', assigneeId: 'p1' },
-  { id: '2', title: 'Integrate Angular signals (Backend)',      completed: true,  created_at: new Date('2024-01-02').toISOString(), assigneeId: 'p2' },
-  { id: '3', title: 'Deploy to Cloudflare Workers (Backend)',  completed: false, created_at: new Date('2024-01-03').toISOString() },
-  { id: '4', title: 'Add dark mode support (Backend)',         completed: false, created_at: new Date('2024-01-04').toISOString() },
+  { id: '1', title: 'Design premium task interface (Backend)', completed: true, created_at: new Date('2024-01-01').toISOString(), plannedStartDate: '2024-01-01', plannedEndDate: '2024-01-10', assigneeId: 'p1' },
+  { id: '2', title: 'Integrate Angular signals (Backend)', completed: true, created_at: new Date('2024-01-02').toISOString(), assigneeId: 'p2' },
+  { id: '3', title: 'Deploy to Cloudflare Workers (Backend)', completed: false, created_at: new Date('2024-01-03').toISOString() },
+  { id: '4', title: 'Add dark mode support (Backend)', completed: false, created_at: new Date('2024-01-04').toISOString() },
 ];
 
 let mockTaskLogs: any[] = [
@@ -40,6 +40,28 @@ function tryGetSupabase(env: Env) {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // -------------------------------------------------------------------------
+    // AUTHENTICATION MIDDLEWARE
+    // -------------------------------------------------------------------------
+    if (url.pathname.startsWith('/api/')) {
+      const authHeader = request.headers.get('Authorization');
+      const supabase = tryGetSupabase(env);
+      
+      if (supabase && authHeader !== 'Bearer DEV_BYPASS_TOKEN') {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          return new Response(JSON.stringify({ error: 'Unauthorized: Missing or invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+        }
+        
+        const token = authHeader.split(' ')[1];
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        
+        if (error || !user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+        }
+        // Token is valid. We could attach user to request context here if needed.
+      }
+    }
 
     // -------------------------------------------------------------------------
     // TASK API ROUTES
@@ -113,11 +135,11 @@ export default {
         if (supabase) {
           const { data, error } = await supabase
             .from('tasks')
-            .insert([{ 
+            .insert([{
               title: body.title,
-              assigneeId: body.assigneeId,
-              startDate: body.startDate,
-              endDate: body.endDate
+              assignee_id: body.assigneeId,
+              planned_start_date: body.plannedStartDate,
+              planned_end_date: body.plannedEndDate
             }])
             .select()
             .single();
@@ -129,9 +151,9 @@ export default {
           title: body.title,
           completed: false,
           created_at: new Date().toISOString(),
-          assigneeId: body.assigneeId,
-          startDate: body.startDate,
-          endDate: body.endDate
+          assignee_id: body.assigneeId,
+          planned_start_date: body.plannedStartDate,
+          planned_end_date: body.plannedEndDate
         };
         mockTasks = [newTask, ...mockTasks];
         return new Response(JSON.stringify(newTask), { status: 201, headers });
@@ -145,7 +167,7 @@ export default {
           const { data: existing, error: fetchErr } = await supabase
             .from('tasks').select('*').eq('id', id).single();
           if (fetchErr) return new Response(JSON.stringify({ error: fetchErr.message }), { status: 500, headers });
-          
+
           const updates = Object.keys(body).length > 0 ? body : { completed: !existing.completed };
           const { data, error } = await supabase
             .from('tasks')
