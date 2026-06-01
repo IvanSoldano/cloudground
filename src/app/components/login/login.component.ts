@@ -31,6 +31,11 @@ import { environment } from '../../../environments/environment';
           {{ errorMessage }}
         </div>
 
+        <div class="success-msg" *ngIf="successMessage">
+          <mat-icon>mark_email_read</mat-icon>
+          <span>{{ successMessage }}</span>
+        </div>
+
         <form class="email-form" (ngSubmit)="loginWithEmail()">
           <mat-form-field appearance="outline">
             <mat-label>Email</mat-label>
@@ -111,6 +116,16 @@ import { environment } from '../../../environments/environment';
       border-radius: 4px;
       font-size: 0.95rem;
     }
+    .success-msg {
+      background-color: #e6f9e6;
+      color: #2b8a3e;
+      padding: 1rem;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
     .email-form {
       display: flex;
       flex-direction: column;
@@ -167,6 +182,7 @@ export class LoginComponent {
   isProduction = environment.production;
   isLoading = false;
   errorMessage = '';
+  successMessage = '';
   
   email = '';
   password = '';
@@ -198,8 +214,11 @@ export class LoginComponent {
     if (!this.email || !this.password) return;
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
     try {
       await this.authService.signUpWithEmail(this.email, this.password);
+      this.successMessage = 'Registro exitoso. Revisa tu correo electrónico y confirma tu cuenta haciendo clic en el enlace de verificación.';
+      this.isLoading = false;
     } catch (error: any) {
       this.errorMessage = error.message || 'Sign up failed';
       this.isLoading = false;

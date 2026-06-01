@@ -74,10 +74,12 @@ export class SupabaseAuthService implements AuthService {
     this.router.navigate(['/tasks']);
   }
 
-  async signUpWithEmail(email: string, password?: string): Promise<void> {
-    const { error } = await this.supabase.auth.signUp({ email, password: password || '' });
+  async signUpWithEmail(email: string, password?: string): Promise<{ confirmEmail: boolean }> {
+    const { data, error } = await this.supabase.auth.signUp({ email, password: password || '' });
     if (error) throw error;
-    this.router.navigate(['/tasks']);
+    // Supabase returns a user with identities = [] if email confirmation is required
+    // and the user hasn't confirmed yet. Don't navigate — let the UI show a message.
+    return { confirmEmail: true };
   }
 
   async logout(): Promise<void> {

@@ -6,7 +6,7 @@ export abstract class AuthService {
   
   abstract loginWithOAuth(provider: 'google' | 'github'): Promise<void>;
   abstract loginWithEmail(email: string, password?: string): Promise<void>;
-  abstract signUpWithEmail(email: string, password?: string): Promise<void>;
+  abstract signUpWithEmail(email: string, password?: string): Promise<{ confirmEmail: boolean }>;
   abstract logout(): Promise<void>;
   abstract getSession(): Promise<any>;
   
