@@ -1,16 +1,32 @@
 <mat-toolbar color="primary" class="app-toolbar">
   <span class="brand">☁️ CloudGround</span>
-  <nav class="nav-links">
-    <a mat-button routerLink="/tasks" routerLinkActive="active-link">
-      <mat-icon>task_alt</mat-icon> Tasks
-    </a>
-    <a mat-button routerLink="/gantt" routerLinkActive="active-link">
-      <mat-icon>bar_chart</mat-icon> Gantt
-    </a>
-    <a mat-button routerLink="/persons/new" routerLinkActive="active-link">
-      <mat-icon>person_add</mat-icon> New Person
-    </a>
-  </nav>
+  
+  <ng-container *ngIf="authService.currentUser$ | async as user">
+    <nav class="nav-links">
+      <a mat-button routerLink="/tasks" routerLinkActive="active-link">
+        <mat-icon>task_alt</mat-icon> Tasks
+      </a>
+      <a mat-button routerLink="/gantt" routerLinkActive="active-link">
+        <mat-icon>bar_chart</mat-icon> Gantt
+      </a>
+      <a mat-button routerLink="/persons/new" routerLinkActive="active-link">
+        <mat-icon>person_add</mat-icon> New Person
+      </a>
+      <a mat-button routerLink="/raci" routerLinkActive="active-link">
+        <mat-icon>view_list</mat-icon> RACI
+      </a>
+    </nav>
+    <span class="spacer"></span>
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon> {{ user.email }}
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </ng-container>
 </mat-toolbar>
 
 <main class="main">

@@ -28,6 +28,13 @@ let mockTaskLogs: any[] = [
   { id: 'l1', taskId: '1', fieldChanged: 'endDate', oldValue: '2024-01-08', newValue: '2024-01-10', justification: 'Design took longer', timestamp: new Date('2024-01-05').toISOString() }
 ];
 
+let mockRaciCategories: any[] = [
+  { id: 1, alias: 'R', description: 'Responsible', created_at: new Date('2024-01-01').toISOString() },
+  { id: 2, alias: 'A', description: 'Accountable', created_at: new Date('2024-01-01').toISOString() },
+  { id: 3, alias: 'C', description: 'Consulted', created_at: new Date('2024-01-01').toISOString() },
+  { id: 4, alias: 'I', description: 'Informed', created_at: new Date('2024-01-01').toISOString() },
+];
+
 /**
  * Returns a Supabase client when credentials are present in env,
  * or null to signal that the in-memory mock should be used instead.
@@ -197,6 +204,19 @@ export default {
         }
         mockTasks = mockTasks.filter((t) => t.id !== id);
         return new Response(JSON.stringify({ success: true }), { headers });
+      }
+    }
+
+    if (url.pathname.startsWith('/api/raci_task_category')) {
+      const headers = { 'Content-Type': 'application/json' };
+      const supabase = tryGetSupabase(env);
+      if (request.method === 'GET') {
+        if (supabase) {
+          const { data, error } = await supabase.from('raci_task_category').select('*').order('id', { ascending: true });
+          if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+          return new Response(JSON.stringify(data), { headers });
+        }
+        return new Response(JSON.stringify(mockRaciCategories), { headers });
       }
     }
 
