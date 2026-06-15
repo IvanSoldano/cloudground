@@ -77,8 +77,13 @@ export class SupabaseAuthService implements AuthService {
   async signUpWithEmail(email: string, password?: string): Promise<{ confirmEmail: boolean }> {
     const { data, error } = await this.supabase.auth.signUp({ email, password: password || '' });
     if (error) throw error;
-    // Supabase returns a user with identities = [] if email confirmation is required
-    // and the user hasn't confirmed yet. Don't navigate — let the UI show a message.
+    
+    // Supabase prevents email enumeration by returning a fake success if the email is taken
+    // but the identities array will be empty.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      throw new Error('EMAIL_TAKEN');
+    }
+    
     return { confirmEmail: true };
   }
 

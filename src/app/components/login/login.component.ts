@@ -24,8 +24,8 @@ import { environment } from '../../../environments/environment';
   template: `
     <div class="login-container">
       <div class="login-content">
-        <h2>Sign in to Cloudground</h2>
-        <p class="subtitle">Access your workspace and tools</p>
+        <h2>Acceder a Cloudground</h2>
+        <p class="subtitle">Accede a tu espacio de trabajo y herramientas</p>
         
         <div class="error-msg" *ngIf="errorMessage">
           {{ errorMessage }}
@@ -38,50 +38,50 @@ import { environment } from '../../../environments/environment';
 
         <form class="email-form" (ngSubmit)="loginWithEmail()">
           <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
+            <mat-label>Correo electrónico</mat-label>
             <input matInput type="email" [(ngModel)]="email" name="email" required [disabled]="isLoading">
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Password</mat-label>
+            <mat-label>Contraseña</mat-label>
             <input matInput type="password" [(ngModel)]="password" name="password" required [disabled]="isLoading">
           </mat-form-field>
 
           <div class="email-actions">
             <button mat-flat-button color="primary" type="submit" [disabled]="isLoading || !email || !password">
-              Sign In
+              Acceder
             </button>
             <button mat-stroked-button type="button" (click)="signUpWithEmail()" [disabled]="isLoading || !email || !password">
-              Sign Up
+              Registrarse
             </button>
           </div>
         </form>
 
         <div class="divider">
-          <span>OR</span>
+          <span>O</span>
         </div>
         
         <div class="auth-buttons">
           <button mat-stroked-button type="button" (click)="login('google')" [disabled]="isLoading">
             <mat-icon>login</mat-icon>
-            Sign in with Google
+            Acceder con Google
           </button>
           
           <button mat-stroked-button type="button" (click)="login('github')" [disabled]="isLoading">
             <mat-icon>code</mat-icon>
-            Sign in with GitHub
+            Acceder con GitHub
           </button>
           
           <!-- Dev Bypass Option (Hidden in Production) -->
           <button *ngIf="!isProduction" mat-button color="warn" type="button" (click)="bypassDevAuth()" [disabled]="isLoading" class="bypass-btn">
             <mat-icon>bug_report</mat-icon>
-            Bypass Auth (Local Dev)
+            Saltar Autenticación (Dev)
           </button>
         </div>
         
         <div class="loading-state" *ngIf="isLoading">
           <mat-spinner diameter="32"></mat-spinner>
-          <span>Authenticating...</span>
+          <span>{{ loadingMessage }}</span>
         </div>
       </div>
     </div>
@@ -181,6 +181,7 @@ export class LoginComponent {
   
   isProduction = environment.production;
   isLoading = false;
+  loadingMessage = 'Cargando...';
   errorMessage = '';
   successMessage = '';
   
@@ -189,11 +190,13 @@ export class LoginComponent {
 
   async login(provider: 'google' | 'github') {
     this.isLoading = true;
+    this.loadingMessage = 'Redirigiendo...';
     this.errorMessage = '';
     try {
       await this.authService.loginWithOAuth(provider);
+      // OAuth redirects, so loading state stays true
     } catch (error: any) {
-      this.errorMessage = error.message || 'Login failed';
+      this.errorMessage = 'Error al redirigir al proveedor. Intenta nuevamente.';
       this.isLoading = false;
     }
   }
@@ -201,11 +204,20 @@ export class LoginComponent {
   async loginWithEmail() {
     if (!this.email || !this.password) return;
     this.isLoading = true;
+    this.loadingMessage = 'Autenticando...';
     this.errorMessage = '';
+    this.successMessage = '';
     try {
       await this.authService.loginWithEmail(this.email, this.password);
+      this.isLoading = false;
     } catch (error: any) {
-      this.errorMessage = error.message || 'Invalid email or password';
+      if (error.message?.includes('Invalid login credentials')) {
+        this.errorMessage = 'El correo o la contraseña son incorrectos.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        this.errorMessage = 'Debes confirmar tu correo electrónico antes de acceder.';
+      } else {
+        this.errorMessage = 'Ocurrió un error al intentar acceder.';
+      }
       this.isLoading = false;
     }
   }
@@ -213,14 +225,21 @@ export class LoginComponent {
   async signUpWithEmail() {
     if (!this.email || !this.password) return;
     this.isLoading = true;
+    this.loadingMessage = 'Registrando...';
     this.errorMessage = '';
     this.successMessage = '';
     try {
       await this.authService.signUpWithEmail(this.email, this.password);
-      this.successMessage = 'Registro exitoso. Revisa tu correo electrónico y confirma tu cuenta haciendo clic en el enlace de verificación.';
+      this.successMessage = 'Registro exitoso. Por favor, revisa tu bandeja de entrada para verificar tu cuenta.';
       this.isLoading = false;
     } catch (error: any) {
-      this.errorMessage = error.message || 'Sign up failed';
+      if (error.message === 'EMAIL_TAKEN') {
+        this.errorMessage = 'Este correo electrónico ya está registrado o debes esperar antes de enviar otro enlace de confirmación.';
+      } else if (error.message?.includes('weak_password')) {
+        this.errorMessage = 'La contraseña es demasiado débil. Usa al menos 6 caracteres.';
+      } else {
+        this.errorMessage = 'Ocurrió un error al intentar registrarse.';
+      }
       this.isLoading = false;
     }
   }
