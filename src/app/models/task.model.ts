@@ -5,6 +5,7 @@ export interface Task {
   plannedStartDate?: string;
   plannedEndDate?: string;
   assigneeId?: string;
+  raci_category?: number;
 }
 
 export interface TaskLog {

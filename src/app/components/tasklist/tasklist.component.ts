@@ -5,6 +5,7 @@ import { Task } from '../../models/task.model';
 import { TaskComponent } from '../task/task.component';
 import { TaskService } from '../../services/task.service';
 import { PersonService } from '../../services/person.service';
+import { RaciCategoryService } from '../../services/raci-category.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -62,7 +63,7 @@ import { MatListModule } from '@angular/material/list';
                 <span>{{ completedCount() }} of {{ taskService.tasks().length }} tasks completed</span>
               </div>
               
-              <mat-nav-list>
+              <div class="task-list-wrapper">
                 @for (task of taskService.tasks(); track task.id) {
                   <app-task 
                     [task]="task" 
@@ -70,7 +71,7 @@ import { MatListModule } from '@angular/material/list';
                     (delete)="deleteTask($event)"
                   ></app-task>
                 }
-              </mat-nav-list>
+              </div>
             }
           </div>
         </mat-card-content>
@@ -79,9 +80,14 @@ import { MatListModule } from '@angular/material/list';
   `,
   styles: [`
     .task-list-container {
-      max-width: 600px;
+      max-width: 1000px;
       margin: 2rem auto;
       padding: 0 1rem;
+    }
+    .task-list-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
     .task-card {
       padding: 1rem;
@@ -126,6 +132,7 @@ import { MatListModule } from '@angular/material/list';
 export class TaskListComponent implements OnInit {
   taskService = inject(TaskService);
   personService = inject(PersonService);
+  raciCategoryService = inject(RaciCategoryService);
   
   newTaskTitle = signal('');
 
@@ -136,6 +143,7 @@ export class TaskListComponent implements OnInit {
   ngOnInit() {
     this.taskService.loadTasks();
     this.personService.loadPersons();
+    this.raciCategoryService.loadCategories();
   }
 
   addTask() {

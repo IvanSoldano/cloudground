@@ -18,10 +18,10 @@ let mockPersons = [
 ];
 
 let mockTasks: any[] = [
-  { id: '1', title: 'Design premium task interface (Backend)', completed: true, created_at: new Date('2024-01-01').toISOString(), plannedStartDate: '2024-01-01', plannedEndDate: '2024-01-10', assigneeId: 'p1' },
-  { id: '2', title: 'Integrate Angular signals (Backend)', completed: true, created_at: new Date('2024-01-02').toISOString(), assigneeId: 'p2' },
-  { id: '3', title: 'Deploy to Cloudflare Workers (Backend)', completed: false, created_at: new Date('2024-01-03').toISOString() },
-  { id: '4', title: 'Add dark mode support (Backend)', completed: false, created_at: new Date('2024-01-04').toISOString() },
+  { id: '1', title: 'Design premium task interface (Backend)', completed: true, created_at: new Date('2024-01-01').toISOString(), plannedStartDate: '2024-01-01', plannedEndDate: '2024-01-10', assigneeId: 'p1', raci_category: 1 },
+  { id: '2', title: 'Integrate Angular signals (Backend)', completed: true, created_at: new Date('2024-01-02').toISOString(), assigneeId: 'p2', raci_category: 2 },
+  { id: '3', title: 'Deploy to Cloudflare Workers (Backend)', completed: false, created_at: new Date('2024-01-03').toISOString(), raci_category: 3 },
+  { id: '4', title: 'Add dark mode support (Backend)', completed: false, created_at: new Date('2024-01-04').toISOString(), raci_category: 4 },
 ];
 
 let mockTaskLogs: any[] = [
