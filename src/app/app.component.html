@@ -18,10 +18,30 @@
         <mat-icon>library_books</mat-icon>
         <span>Wiki</span>
       </a>
+      <a routerLink="/gantt" routerLinkActive="active" class="nav-link">
+        <mat-icon>bar_chart</mat-icon>
+        <span>Gantt</span>
+      </a>
+      <a routerLink="/raci" routerLinkActive="active" class="nav-link">
+        <mat-icon>view_list</mat-icon>
+        <span>RACI</span>
+      </a>
     </nav>
 
-    <div class="header-badge">
+    <div class="header-badge" style="display: flex; gap: 1rem; align-items: center;">
       <span class="edge-pill">Edge Native</span>
+      
+      @if (authService.currentUser$ | async; as user) {
+        <button mat-button [matMenuTriggerFor]="userMenu" style="color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;">
+          <mat-icon>account_circle</mat-icon> {{ user.email }}
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>exit_to_app</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
+      }
     </div>
   </div>
 </header>

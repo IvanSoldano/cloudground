@@ -67,6 +67,7 @@ export class TaskService {
     ).subscribe();
   }
 
+<<<<<<< HEAD
   toggleTask(id: string) {
     this.http.put<Task>(`/api/tasks/${id}`, {}).pipe(
       tap((updatedTask) => {
@@ -76,15 +77,34 @@ export class TaskService {
             completed: updatedTask.completed !== undefined ? updatedTask.completed : !t.completed,
             assignedPersonId: updatedTask.assignedPersonId || updatedTask.assigned_person_id || t.assignedPersonId 
           } : t)
+=======
+  updateTask(id: string, updates: Partial<Task>) {
+    return this.http.put(`/api/tasks/${id}`, updates).pipe(
+      tap(() => {
+        this.tasks.update(tasks => 
+          tasks.map(t => t.id === id ? { ...t, ...updates } : t)
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
         );
       }),
       catchError((error) => {
-        console.warn('Backend unavailable, toggling task locally.', error);
-        this.localFallback = this.localFallback.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+        console.warn('Backend unavailable, updating task locally.', error);
+        this.localFallback = this.localFallback.map(t => t.id === id ? { ...t, ...updates } : t);
         this.tasks.set([...this.localFallback]);
         return of(null);
       })
-    ).subscribe();
+    );
+  }
+
+  getLogs(taskId: string) {
+    return this.http.get<any[]>(`/api/tasks/${taskId}/logs`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  addActivityLog(taskId: string, log: any) {
+    return this.http.post(`/api/tasks/${taskId}/logs`, log).pipe(
+      catchError(() => of(null))
+    );
   }
 
   assignPerson(taskId: string, personId: string | null) {

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .app-header {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
@@ -42,10 +43,27 @@
   background: linear-gradient(135deg, var(--mat-sys-primary) 0%, #a855f7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+=======
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-right: 1rem;
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
 }
 
 .nav-links {
   display: flex;
+<<<<<<< HEAD
   gap: 0.5rem;
 }
 
@@ -98,12 +116,31 @@
 .main {
   min-height: calc(100vh - 60px);
   padding: 2rem 0;
+=======
+  gap: 0.25rem;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.active-link {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.main {
+  min-height: calc(100vh - 64px);
+  padding: 2rem;
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
   display: flex;
   justify-content: center;
 }
 
 .content {
   width: 100%;
+<<<<<<< HEAD
 }
 
 .debug-card {
@@ -156,4 +193,7 @@ pre {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+=======
+  max-width: 1200px;
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
 }

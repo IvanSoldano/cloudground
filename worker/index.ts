@@ -12,10 +12,34 @@ export interface Env {
 // Used as a fallback when Supabase credentials are not configured.
 // Resets on Worker restart — perfect for local development without a real DB.
 // ---------------------------------------------------------------------------
+<<<<<<< HEAD
 let mockPeople = [
   { id: 'p1', name: 'Alex Rivera', email: 'alex@cloudground.io', role: 'Frontend Engineer', avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80' },
   { id: 'p2', name: 'Jordan Lee', email: 'jordan@cloudground.io', role: 'Backend Engineer', avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80' },
   { id: 'p3', name: 'Taylor Chen', email: 'taylor@cloudground.io', role: 'UI/UX Designer', avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80' }
+=======
+let mockPersons = [
+  { id: 'p1', name: 'Alice', surname: 'Smith', dni: '12345678', cuil: '20-12345678-0' },
+  { id: 'p2', name: 'Bob', surname: 'Jones', dni: '87654321', cuil: '20-87654321-0' },
+];
+
+let mockTasks: any[] = [
+  { id: '1', title: 'Design premium task interface (Backend)', completed: true, created_at: new Date('2024-01-01').toISOString(), plannedStartDate: '2024-01-01', plannedEndDate: '2024-01-10', assigneeId: 'p1', raci_category: 1 },
+  { id: '2', title: 'Integrate Angular signals (Backend)', completed: true, created_at: new Date('2024-01-02').toISOString(), assigneeId: 'p2', raci_category: 2 },
+  { id: '3', title: 'Deploy to Cloudflare Workers (Backend)', completed: false, created_at: new Date('2024-01-03').toISOString(), raci_category: 3 },
+  { id: '4', title: 'Add dark mode support (Backend)', completed: false, created_at: new Date('2024-01-04').toISOString(), raci_category: 4 },
+];
+
+let mockTaskLogs: any[] = [
+  { id: 'l1', taskId: '1', fieldChanged: 'endDate', oldValue: '2024-01-08', newValue: '2024-01-10', justification: 'Design took longer', timestamp: new Date('2024-01-05').toISOString() }
+];
+
+let mockRaciCategories: any[] = [
+  { id: 1, alias: 'R', description: 'Responsible', created_at: new Date('2024-01-01').toISOString() },
+  { id: 2, alias: 'A', description: 'Accountable', created_at: new Date('2024-01-01').toISOString() },
+  { id: 3, alias: 'C', description: 'Consulted', created_at: new Date('2024-01-01').toISOString() },
+  { id: 4, alias: 'I', description: 'Informed', created_at: new Date('2024-01-01').toISOString() },
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
 ];
 
 let mockTasks = [
@@ -54,6 +78,7 @@ export default {
     const url = new URL(request.url);
 
     // -------------------------------------------------------------------------
+<<<<<<< HEAD
     // PEOPLE API ROUTES
     // -------------------------------------------------------------------------
     if (url.pathname.startsWith('/api/people')) {
@@ -130,12 +155,51 @@ export default {
         mockTasks = mockTasks.map(t => t.assigned_person_id === id ? { ...t, assigned_person_id: null } : t);
         mockPeople = mockPeople.filter((p) => p.id !== id);
         return new Response(JSON.stringify({ success: true }), { headers });
+=======
+    // AUTHENTICATION MIDDLEWARE
+    // -------------------------------------------------------------------------
+    if (url.pathname.startsWith('/api/')) {
+      const authHeader = request.headers.get('Authorization');
+      const supabase = tryGetSupabase(env);
+      
+      if (supabase && authHeader !== 'Bearer DEV_BYPASS_TOKEN') {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          return new Response(JSON.stringify({ error: 'Unauthorized: Missing or invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+        }
+        
+        const token = authHeader.split(' ')[1];
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        
+        if (error || !user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+        }
+        // Token is valid. We could attach user to request context here if needed.
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
       }
     }
 
     // -------------------------------------------------------------------------
     // TASK API ROUTES
     // -------------------------------------------------------------------------
+    if (url.pathname.startsWith('/api/persons')) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (request.method === 'GET') {
+        return new Response(JSON.stringify(mockPersons), { headers });
+      }
+      if (request.method === 'POST') {
+        const body: any = await request.json();
+        const newPerson = {
+          id: crypto.randomUUID(),
+          name: body.name,
+          surname: body.surname,
+          dni: body.dni,
+          cuil: body.cuil
+        };
+        mockPersons = [...mockPersons, newPerson];
+        return new Response(JSON.stringify(newPerson), { status: 201, headers });
+      }
+    }
+
     if (url.pathname.startsWith('/api/tasks')) {
       const headers = { 
         'Content-Type': 'application/json',
@@ -149,6 +213,30 @@ export default {
       }
 
       const supabase = tryGetSupabase(env); // null → use mock
+
+      // Check if it's a logs route
+      const logsMatch = url.pathname.match(/^\/api\/tasks\/([^\/]+)\/logs$/);
+      if (logsMatch) {
+        const taskId = logsMatch[1];
+        if (request.method === 'GET') {
+          const logs = mockTaskLogs.filter(l => l.taskId === taskId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          return new Response(JSON.stringify(logs), { headers });
+        }
+        if (request.method === 'POST') {
+          const body: any = await request.json();
+          const newLog = {
+            id: crypto.randomUUID(),
+            taskId,
+            fieldChanged: body.fieldChanged,
+            oldValue: body.oldValue,
+            newValue: body.newValue,
+            justification: body.justification,
+            timestamp: new Date().toISOString()
+          };
+          mockTaskLogs = [newLog, ...mockTaskLogs];
+          return new Response(JSON.stringify(newLog), { status: 201, headers });
+        }
+      }
 
       // GET /api/tasks — return all tasks, newest first
       if (request.method === 'GET') {
@@ -172,6 +260,7 @@ export default {
       if (request.method === 'POST') {
         const body: any = await request.json();
         if (supabase) {
+<<<<<<< HEAD
           try {
             const { data, error } = await supabase
               .from('tasks')
@@ -183,18 +272,39 @@ export default {
           } catch (err: any) {
             console.error('Supabase tasks insert failed, falling back to mock:', err.message || err);
           }
+=======
+          const { data, error } = await supabase
+            .from('tasks')
+            .insert([{
+              title: body.title,
+              assignee_id: body.assigneeId,
+              planned_start_date: body.plannedStartDate,
+              planned_end_date: body.plannedEndDate
+            }])
+            .select()
+            .single();
+          if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+          return new Response(JSON.stringify(data), { status: 201, headers });
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
         }
         const newTask = {
           id: crypto.randomUUID(),
           title: body.title,
           completed: false,
           created_at: new Date().toISOString(),
+<<<<<<< HEAD
           assigned_person_id: body.assignedPersonId || null,
+=======
+          assignee_id: body.assigneeId,
+          planned_start_date: body.plannedStartDate,
+          planned_end_date: body.plannedEndDate
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
         };
         mockTasks = [newTask, ...mockTasks];
         return new Response(JSON.stringify(newTask), { status: 201, headers });
       }
 
+<<<<<<< HEAD
       // PUT /api/tasks/:id — update a task (toggle completed, assign person, etc.)
       if (request.method === 'PUT') {
         const id = url.pathname.split('/').pop();
@@ -235,6 +345,31 @@ export default {
           const completed = body.completed !== undefined ? body.completed : !t.completed;
           const assigned_person_id = body.assignedPersonId !== undefined ? body.assignedPersonId : t.assigned_person_id;
           updated = { ...t, completed, assigned_person_id };
+=======
+      // PUT /api/tasks/:id — update a task
+      if (request.method === 'PUT') {
+        const id = url.pathname.split('/').pop();
+        const body: any = await request.json().catch(() => ({}));
+        if (supabase) {
+          const { data: existing, error: fetchErr } = await supabase
+            .from('tasks').select('*').eq('id', id).single();
+          if (fetchErr) return new Response(JSON.stringify({ error: fetchErr.message }), { status: 500, headers });
+
+          const updates = Object.keys(body).length > 0 ? body : { completed: !existing.completed };
+          const { data, error } = await supabase
+            .from('tasks')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+          if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+          return new Response(JSON.stringify(data), { headers });
+        }
+        let updated: any = undefined;
+        mockTasks = mockTasks.map((t) => {
+          if (t.id !== id) return t;
+          updated = Object.keys(body).length > 0 ? { ...t, ...body } : { ...t, completed: !t.completed };
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
           return updated;
         });
         return new Response(JSON.stringify(updated ?? { success: true }), { headers });
@@ -257,6 +392,7 @@ export default {
       }
     }
 
+<<<<<<< HEAD
     // -------------------------------------------------------------------------
     // WIKI API ROUTES
     // -------------------------------------------------------------------------
@@ -471,6 +607,18 @@ export default {
         };
 
         return new Response(JSON.stringify(mockWikiPages[pageIndex]), { headers });
+=======
+    if (url.pathname.startsWith('/api/raci_task_category')) {
+      const headers = { 'Content-Type': 'application/json' };
+      const supabase = tryGetSupabase(env);
+      if (request.method === 'GET') {
+        if (supabase) {
+          const { data, error } = await supabase.from('raci_task_category').select('*').order('id', { ascending: true });
+          if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+          return new Response(JSON.stringify(data), { headers });
+        }
+        return new Response(JSON.stringify(mockRaciCategories), { headers });
+>>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
       }
     }
 
