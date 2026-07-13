@@ -493,7 +493,7 @@ export class PeopleManagerComponent implements OnInit {
     return this.taskService.tasks().filter(t => t.assignedPersonId === personId && !t.completed).length;
   }
 
-  getRoleClass(role: string): string {
+  getRoleClass(role?: string): string {
     switch (role) {
       case 'Frontend Engineer': return 'role-frontend';
       case 'Backend Engineer': return 'role-backend';

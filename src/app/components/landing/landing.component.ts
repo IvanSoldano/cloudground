@@ -37,18 +37,13 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
         </mat-card-content>
         <mat-card-actions align="end">
-<<<<<<< HEAD
           <a mat-button routerLink="/people" style="margin-right: 0.5rem;">
             <mat-icon>groups</mat-icon>
             Meet the Team
           </a>
-          <a mat-flat-button color="primary" routerLink="/tasks">
-            Explore Tasks
-=======
-          <a mat-stroked-button routerLink="/login" class="login-btn">Sign In</a>
-          <a mat-flat-button class="explore-btn" routerLink="/tasks">
+          <a mat-stroked-button routerLink="/login" class="login-btn" style="margin-right: 0.5rem;">Sign In</a>
+          <a mat-flat-button color="primary" class="explore-btn" routerLink="/tasks">
             Explore Task List
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
             <mat-icon>arrow_forward</mat-icon>
           </a>
         </mat-card-actions>

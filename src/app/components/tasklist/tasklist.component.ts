@@ -5,11 +5,8 @@ import { Task } from '../../models/task.model';
 import { TaskComponent } from '../task/task.component';
 import { TaskService } from '../../services/task.service';
 import { PersonService } from '../../services/person.service';
-<<<<<<< HEAD
 import { RouterLink } from '@angular/router';
-=======
 import { RaciCategoryService } from '../../services/raci-category.service';
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -106,11 +103,7 @@ import { MatSelectModule } from '@angular/material/select';
   `,
   styles: [`
     .task-list-container {
-<<<<<<< HEAD
-      max-width: 700px;
-=======
       max-width: 1000px;
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
       margin: 2rem auto;
       padding: 0 1rem;
     }
@@ -187,10 +180,7 @@ import { MatSelectModule } from '@angular/material/select';
 export class TaskListComponent implements OnInit {
   taskService = inject(TaskService);
   personService = inject(PersonService);
-<<<<<<< HEAD
-=======
   raciCategoryService = inject(RaciCategoryService);
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
   
   newTaskTitle = signal('');
   selectedPersonId = signal<string | null>(null);
@@ -201,12 +191,9 @@ export class TaskListComponent implements OnInit {
 
   ngOnInit() {
     this.taskService.loadTasks();
-<<<<<<< HEAD
     this.personService.loadPeople();
-=======
     this.personService.loadPersons();
     this.raciCategoryService.loadCategories();
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
   }
 
   addTask() {

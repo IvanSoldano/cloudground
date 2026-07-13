@@ -1,45 +1,33 @@
-<<<<<<< HEAD
-import { Component, input, output, computed } from '@angular/core';
+import { Component, input, output, computed, inject } from '@angular/core';
 import { Task } from '../../models/task.model';
 import { Person } from '../../models/person.model';
-import { NgClass } from '@angular/common';
-=======
-import { Component, computed, inject, input, output } from '@angular/core';
-import { Task } from '../../models/task.model';
 import { CommonModule } from '@angular/common';
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
 
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-<<<<<<< HEAD
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
-=======
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { PersonService } from '../../services/person.service';
 import { RaciCategoryService } from '../../services/raci-category.service';
 import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.component';
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
 
 @Component({
   selector: 'app-task',
   standalone: true,
-<<<<<<< HEAD
   imports: [
-    NgClass, 
+    CommonModule, 
     MatCheckboxModule, 
-    MatIconButton, 
+    MatButtonModule, 
     MatIconModule, 
     MatListModule,
     MatMenuModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatChipsModule
   ],
-=======
-  imports: [CommonModule, MatCheckboxModule, MatButtonModule, MatIconModule, MatListModule, MatChipsModule],
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
   template: `
     <div class="task-item">
       <div class="checkbox-container">
@@ -71,7 +59,6 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
         </div>
       </div>
       
-<<<<<<< HEAD
       <div matListItemMeta class="assignee-actions-wrapper">
         <!-- Assignee Slot with Menu Trigger -->
         <button 
@@ -125,30 +112,24 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
           }
         </mat-menu>
 
-        <button mat-icon-button color="warn" (click)="delete.emit(task().id)" aria-label="Delete task">
-          <mat-icon>delete_outline</mat-icon>
-        </button>
-      </div>
-    </mat-list-item>
-=======
-      <div class="meta-section">
-        @if (raciCategory()) {
-          <div class="raci-col" title="{{ raciCategory()?.description }}">
-            <span class="raci-label">Cat.</span>
-            <span class="raci-value">{{ raciCategory()?.alias }}</span>
+        <div class="meta-section">
+          @if (raciCategory()) {
+            <div class="raci-col" title="{{ raciCategory()?.description }}">
+              <span class="raci-label">Cat.</span>
+              <span class="raci-value">{{ raciCategory()?.alias }}</span>
+            </div>
+          }
+          <div class="actions">
+            <button mat-icon-button color="primary" (click)="editTask()" aria-label="Edit task">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="delete.emit(task().id)" aria-label="Delete task">
+              <mat-icon>delete</mat-icon>
+            </button>
           </div>
-        }
-        <div class="actions">
-          <button mat-icon-button color="primary" (click)="editTask()" aria-label="Edit task">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="delete.emit(task().id)" aria-label="Delete task">
-            <mat-icon>delete</mat-icon>
-          </button>
         </div>
       </div>
     </div>
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
   `,
   styles: [`
     .task-item {
@@ -158,16 +139,13 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
       margin-bottom: 0.5rem;
       border: 1px solid var(--mat-sys-outline-variant);
       border-radius: 8px;
-<<<<<<< HEAD
       transition: border-color 0.2s, background-color 0.2s;
+      background: var(--mat-sys-surface);
+      gap: 1rem;
     }
     .task-item:hover {
       border-color: var(--mat-sys-primary);
       background: rgba(var(--mat-sys-surface-variant-rgb), 0.04);
-=======
-      background: var(--mat-sys-surface);
-      gap: 1rem;
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
     }
     .checkbox-container {
       display: flex;
@@ -196,7 +174,6 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
       text-decoration: line-through;
       opacity: 0.5;
     }
-<<<<<<< HEAD
     .assignee-actions-wrapper {
       display: flex;
       align-items: center;
@@ -303,7 +280,7 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
     .clear-item {
       border-top: 1px solid var(--mat-sys-outline-variant);
       margin-top: 0.25rem;
-=======
+    }
     .task-dates {
       display: flex;
       flex-wrap: wrap;
@@ -349,23 +326,37 @@ import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.co
     .assignee-chip {
       font-size: 0.75rem;
       min-height: 24px;
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
     }
   `]
 })
 export class TaskComponent {
   task = input.required<Task>();
-<<<<<<< HEAD
-  people = input.required<Person[]>();
+  people = input<Person[]>([]); // Made optional with default empty array so both usages are valid
   
-  toggle = output<string>();
+  toggle = output<Task>();
   delete = output<string>();
   assignPerson = output<{ taskId: string, personId: string | null }>();
+
+  personService = inject(PersonService);
+  raciCategoryService = inject(RaciCategoryService);
+  dialog = inject(MatDialog);
 
   assignedPerson = computed(() => {
     const list = this.people();
     const id = this.task().assignedPersonId;
     return list.find(p => p.id === id) || null;
+  });
+
+  assignee = computed(() => {
+    const assigneeId = this.task().assigneeId;
+    if (!assigneeId) return null;
+    return this.personService.persons().find(p => p.id === assigneeId);
+  });
+
+  raciCategory = computed(() => {
+    const catId = this.task().raci_category;
+    if (!catId) return null;
+    return this.raciCategoryService.categories().find(c => c.id === catId);
   });
 
   getInitials(name: string): string {
@@ -383,32 +374,13 @@ export class TaskComponent {
     ];
     const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return gradients[hash % gradients.length];
-=======
-  toggle = output<Task>();
-  delete = output<string>();
-
-  personService = inject(PersonService);
-  raciCategoryService = inject(RaciCategoryService);
-  dialog = inject(MatDialog);
-
-  assignee = computed(() => {
-    const assigneeId = this.task().assigneeId;
-    if (!assigneeId) return null;
-    return this.personService.persons().find(p => p.id === assigneeId);
-  });
-
-  raciCategory = computed(() => {
-    const catId = this.task().raci_category;
-    if (!catId) return null;
-    return this.raciCategoryService.categories().find(c => c.id === catId);
-  });
+  }
 
   editTask() {
     this.dialog.open(TaskEditDialogComponent, {
       data: { task: this.task() },
       width: '500px'
     });
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
   }
 }
 

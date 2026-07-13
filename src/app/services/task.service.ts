@@ -67,23 +67,11 @@ export class TaskService {
     ).subscribe();
   }
 
-<<<<<<< HEAD
-  toggleTask(id: string) {
-    this.http.put<Task>(`/api/tasks/${id}`, {}).pipe(
-      tap((updatedTask) => {
-        this.tasks.update(tasks => 
-          tasks.map(t => t.id === id ? { 
-            ...t, 
-            completed: updatedTask.completed !== undefined ? updatedTask.completed : !t.completed,
-            assignedPersonId: updatedTask.assignedPersonId || updatedTask.assigned_person_id || t.assignedPersonId 
-          } : t)
-=======
   updateTask(id: string, updates: Partial<Task>) {
     return this.http.put(`/api/tasks/${id}`, updates).pipe(
       tap(() => {
         this.tasks.update(tasks => 
           tasks.map(t => t.id === id ? { ...t, ...updates } : t)
->>>>>>> 44ffd9146989b7a3a3f5ca631341274d1aa4daac
         );
       }),
       catchError((error) => {
