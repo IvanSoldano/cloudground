@@ -57,9 +57,30 @@ let mockWikiHistory: any[] = [];
  * Returns a Supabase client when credentials are present in env,
  * or null to signal that the in-memory mock should be used instead.
  */
-function tryGetSupabase(env: Env) {
+/**
+ * Returns a Supabase client.
+ * When a real Supabase JWT is present in the incoming request it is forwarded
+ * via the Authorization header so that Supabase evaluates RLS as
+ * `role = authenticated` (and `auth.uid()` returns the correct user id).
+ *
+ * The fake `DEV_BYPASS_TOKEN` produced by the local dev-bypass mode is
+ * intentionally ignored — the anon key is used as fallback so the mock
+ * path stays reachable during local development.
+ */
+function tryGetSupabase(env: Env, request?: Request) {
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return null;
-  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+
+  const authHeader = request?.headers.get('Authorization') ?? '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+
+  // The dev-bypass emits a fake token — do not forward it to Supabase.
+  const isRealToken = token && token !== 'DEV_BYPASS_TOKEN';
+
+  return createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    global: {
+      headers: isRealToken ? { Authorization: `Bearer ${token}` } : {}
+    }
+  });
 }
 
 export default {
@@ -100,7 +121,7 @@ export default {
         return new Response(null, { headers });
       }
 
-      const supabase = tryGetSupabase(env); // null → use mock
+      const supabase = tryGetSupabase(env, request); // null → use mock
 
       // Check if it's a logs route
       const logsMatch = url.pathname.match(/^\/api\/tasks\/([^\/]+)\/logs$/);
@@ -256,7 +277,7 @@ export default {
         return new Response(null, { headers });
       }
 
-      const supabase = tryGetSupabase(env);
+      const supabase = tryGetSupabase(env, request);
 
       // GET /api/wiki — return all wiki pages (summaries without full content if desired, but we return all for now)
       if (request.method === 'GET' && url.pathname === '/api/wiki') {
@@ -463,7 +484,7 @@ export default {
     // -------------------------------------------------------------------------
     if (url.pathname.startsWith('/api/raci_task_category')) {
       const headers = { 'Content-Type': 'application/json' };
-      const supabase = tryGetSupabase(env);
+      const supabase = tryGetSupabase(env, request);
       if (request.method === 'GET') {
         if (supabase) {
           try {
