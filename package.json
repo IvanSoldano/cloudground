@@ -7,8 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "dev:cloudflare:ram": "cmd /c \"start npm run start & npx wrangler dev --config wrangler.ram.json --persist-to C:\\Users\\Usuario\\AppData\\Local\\Temp\\wrangler-state --var IS_LOCAL_DEV:true\"",
-    "dev:cloudflare:ram:supabase": "cmd /c \"start npm run start & npx wrangler dev --config wrangler.ram.json --persist-to C:\\Users\\Usuario\\AppData\\Local\\Temp\\wrangler-state --var IS_LOCAL_DEV:true --var SUPABASE_URL:https://nagebuiztgddoirjluru.supabase.co --var SUPABASE_ANON_KEY:sb_publishable_Mte0g4jVf69Vc4lr0THAMw_lJePJz12\"",
+    "dev:cloudflare:ram": "cmd /c \"start npm run start & npx wrangler dev --config wrangler.ram.json --persist-to .wrangler/state_ram --var IS_LOCAL_DEV:true\"",
+    "dev:cloudflare:ram:supabase": "cmd /c \"start npm run start & npx wrangler dev --config wrangler.ram.json --persist-to .wrangler/state_ram --var IS_LOCAL_DEV:true --var SUPABASE_URL:https://nagebuiztgddoirjluru.supabase.co --var SUPABASE_ANON_KEY:sb_publishable_Mte0g4jVf69Vc4lr0THAMw_lJePJz12\"",
     "dev:cloudflare:disk": "cmd /c \"start npm run start & npx wrangler dev --var IS_LOCAL_DEV:true\"",
     "dev:cloudflare": "npm run dev:cloudflare:ram"
   },
