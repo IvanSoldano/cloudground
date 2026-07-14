@@ -187,9 +187,9 @@ export class TaskEditDialogComponent implements OnInit {
     const filterValue = value.toLowerCase();
     return this.personService.persons().filter(p =>
       p.name.toLowerCase().includes(filterValue) ||
-      p.surname.toLowerCase().includes(filterValue) ||
-      p.dni.toLowerCase().includes(filterValue) ||
-      p.cuil.toLowerCase().includes(filterValue)
+      (p.surname?.toLowerCase().includes(filterValue) ?? false) ||
+      (p.dni?.toLowerCase().includes(filterValue) ?? false) ||
+      (p.cuil?.toLowerCase().includes(filterValue) ?? false)
     );
   }
 

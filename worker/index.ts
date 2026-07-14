@@ -455,6 +455,9 @@ export default {
         };
 
         return new Response(JSON.stringify(mockWikiPages[pageIndex]), { headers });
+      }
+    }
+
     // -------------------------------------------------------------------------
     // RACI API ROUTES
     // -------------------------------------------------------------------------

@@ -77,7 +77,7 @@ export class PersonFormComponent {
 
   onSave() {
     if (this.personForm.valid) {
-      this.personService.addPerson(this.personForm.value as any).subscribe((newPerson) => {
+      this.personService.addPerson(this.personForm.value as any).subscribe((newPerson: Person) => {
         this.save.emit(newPerson);
       });
     }
