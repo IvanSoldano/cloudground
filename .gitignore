@@ -44,3 +44,7 @@ __screenshots__/
 Thumbs.db
 .dev.vars
 .wrangler/
+
+# SQL
+sql/
+*.sql
