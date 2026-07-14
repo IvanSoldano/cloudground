@@ -1,5 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { WikiPage } from '../models/wiki.model';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,18 +14,16 @@ export class WikiService {
   public loading = signal<boolean>(false);
   public error = signal<string | null>(null);
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
   async loadPages() {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const response = await fetch(this.apiUrl);
-      if (!response.ok) throw new Error('Failed to load wiki pages');
-      const data = await response.json();
+      const data = await firstValueFrom(this.http.get<WikiPage[]>(this.apiUrl));
       this.pagesSignal.set(data);
     } catch (err: any) {
-      this.error.set(err.message);
+      this.error.set(err.message || 'Failed to load wiki pages');
     } finally {
       this.loading.set(false);
     }
@@ -31,50 +31,33 @@ export class WikiService {
 
   async getPage(slug: string): Promise<WikiPage | null> {
     try {
-      const response = await fetch(`${this.apiUrl}/${slug}`);
-      if (!response.ok) {
-         if (response.status === 404) return null;
-         throw new Error('Failed to load page');
-      }
-      return await response.json();
+      return await firstValueFrom(this.http.get<WikiPage>(`${this.apiUrl}/${slug}`));
     } catch (err: any) {
       console.error(err);
       return null;
     }
   }
 
-  async createPage(title: string, content: string, authorId: string): Promise<WikiPage> {
-    const response = await fetch(this.apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, authorId })
-    });
-    if (!response.ok) throw new Error('Failed to create page');
-    const newPage = await response.json();
+  async createPage(title: string, content: string, authorId: number | null): Promise<WikiPage> {
+    const newPage = await firstValueFrom(
+      this.http.post<WikiPage>(this.apiUrl, { title, content, authorId })
+    );
     this.pagesSignal.update(pages => [newPage, ...pages]);
     return newPage;
   }
 
-  async updatePage(slug: string, title: string, content: string, authorId: string): Promise<WikiPage> {
-    const response = await fetch(`${this.apiUrl}/${slug}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, authorId })
-    });
-    if (!response.ok) throw new Error('Failed to update page');
-    const updated = await response.json();
+  async updatePage(slug: string, title: string, content: string, authorId: number | null): Promise<WikiPage> {
+    const updated = await firstValueFrom(
+      this.http.put<WikiPage>(`${this.apiUrl}/${slug}`, { title, content, authorId })
+    );
     this.pagesSignal.update(pages => pages.map(p => p.slug === slug ? updated : p));
     return updated;
   }
 
-  async restoreHistory(slug: string, historyId: string, authorId: string): Promise<WikiPage> {
-    const response = await fetch(`${this.apiUrl}/${slug}/restore/${historyId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ authorId })
-    });
-    if (!response.ok) throw new Error('Failed to restore history');
-    const restored = await response.json();
+  async restoreHistory(slug: string, historyId: string, authorId: number | null): Promise<WikiPage> {
+    const restored = await firstValueFrom(
+      this.http.post<WikiPage>(`${this.apiUrl}/${slug}/restore/${historyId}`, { authorId })
+    );
     this.pagesSignal.update(pages => pages.map(p => p.slug === slug ? restored : p));
     return restored;
   }

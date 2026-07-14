@@ -40,7 +40,7 @@ export class SupabaseAuthService implements AuthService {
     // Fetch the user's role from the custom profiles table
     const { data: profile } = await this.supabase
       .from('profiles')
-      .select('role, status')
+      .select('role, status, persona_id')
       .eq('id', supabaseUser.id)
       .single();
 
@@ -48,7 +48,8 @@ export class SupabaseAuthService implements AuthService {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
       role: profile?.role || 'pending', // Default to pending if no profile or role found
-      status: profile?.status || 'pending'
+      status: profile?.status || 'pending',
+      persona_id: profile?.persona_id || null
     };
 
     this.currentUserSubject.next(user);

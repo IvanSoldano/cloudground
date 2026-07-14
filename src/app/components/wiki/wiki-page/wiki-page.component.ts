@@ -4,6 +4,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WikiService } from '../../../services/wiki.service';
 import { WikiPage } from '../../../models/wiki.model';
+import { SupabaseAuthService } from '../../../services/supabase-auth.service';
+import { firstValueFrom } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -89,7 +91,7 @@ import DOMPurify from 'dompurify';
           } @else {
             <div class="markdown-content" [innerHTML]="renderedHtml()"></div>
             <div class="page-meta">
-              Last updated on {{ page()?.updated_at | date:'medium' }} by User {{ page()?.author_id }}
+              Last updated on {{ page()?.updated_at | date:'medium' }} by {{ page()?.author_name }}
             </div>
           }
         </div>
@@ -188,6 +190,7 @@ export class WikiPageComponent implements OnInit {
   route = inject(ActivatedRoute);
   router = inject(Router);
   wikiService = inject(WikiService);
+  authService = inject(SupabaseAuthService);
 
   page = signal<WikiPage | null>(null);
   loading = signal<boolean>(true);
@@ -250,7 +253,14 @@ export class WikiPageComponent implements OnInit {
   }
 
   async savePage() {
-    const authorId = 'p1'; // Mocking current user ID
+    let authorId: number | null = null;
+    try {
+      const user = await firstValueFrom(this.authService.currentUser$);
+      authorId = user?.persona_id || null;
+    } catch (e) {
+      console.warn('Could not get current user', e);
+    }
+
     this.loading.set(true);
     
     try {
@@ -278,7 +288,14 @@ export class WikiPageComponent implements OnInit {
     if (confirm('Are you sure you want to restore this version? Your current version will be saved to history.')) {
       this.loading.set(true);
       try {
-        const authorId = 'p1'; // Mock user
+        let authorId: number | null = null;
+        try {
+          const user = await firstValueFrom(this.authService.currentUser$);
+          authorId = user?.persona_id || null;
+        } catch (e) {
+          console.warn('Could not get current user', e);
+        }
+        
         const restored = await this.wikiService.restoreHistory(p.slug, historyId, authorId);
         await this.loadPage(restored.slug);
       } catch (err) {

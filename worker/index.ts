@@ -110,7 +110,7 @@ export default {
     }
 
     if (url.pathname.startsWith('/api/tasks')) {
-      const headers = { 
+      const headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': '*',
@@ -172,8 +172,8 @@ export default {
           try {
             const { data, error } = await supabase
               .from('tasks')
-              .insert([{ 
-                title: body.title, 
+              .insert([{
+                title: body.title,
                 assigned_person_id: body.assignedPersonId,
                 assignee_id: body.assigneeId,
                 planned_start_date: body.plannedStartDate,
@@ -204,7 +204,7 @@ export default {
       if (request.method === 'PUT') {
         const id = url.pathname.split('/').pop();
         const body: any = await request.json();
-        
+
         if (supabase) {
           try {
             const { data, error } = await supabase
@@ -226,13 +226,13 @@ export default {
             console.error('Supabase tasks update failed, falling back to mock:', err.message || err);
           }
         }
-        
+
         let updated: any = null;
         mockTasks = mockTasks.map((t: any) => {
           if (t.id === id) {
-            updated = { 
-              ...t, 
-              ...body, 
+            updated = {
+              ...t,
+              ...body,
               assigned_person_id: body.assignedPersonId !== undefined ? body.assignedPersonId : t.assigned_person_id,
               assignee_id: body.assigneeId !== undefined ? body.assigneeId : t.assignee_id,
               planned_start_date: body.plannedStartDate !== undefined ? body.plannedStartDate : t.planned_start_date,
@@ -266,7 +266,7 @@ export default {
     // WIKI API ROUTES
     // -------------------------------------------------------------------------
     if (url.pathname.startsWith('/api/wiki')) {
-      const headers = { 
+      const headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': '*',
@@ -285,24 +285,37 @@ export default {
           try {
             const { data, error } = await supabase
               .from('wiki_pages')
-              .select('id, slug, title, author_id, updated_at')
+              .select('id, slug, title, author_id, updated_at, personas (nombre, otros_nombres, apellido, otros_apellidos)')
               .order('updated_at', { ascending: false });
             if (error) throw error;
-            return new Response(JSON.stringify(data), { headers });
+
+            const mappedData = data.map((p: any) => ({
+              id: p.id,
+              slug: p.slug,
+              title: p.title,
+              author_id: p.author_id,
+              updated_at: p.updated_at,
+              author_name: p.author_id ? `${p.personas?.nombre || ''} ${p.personas?.otros_nombres || ''} ${p.personas?.apellido || ''} ${p.personas?.otros_apellidos || ''}`.trim() || 'Unknown User' : 'System'
+            }));
+            return new Response(JSON.stringify(mappedData), { headers });
           } catch (err: any) {
             console.error('Supabase wiki fetch failed, falling back to mock:', err.message || err);
           }
         }
-        const summaries = mockWikiPages.map(p => ({
-          id: p.id, slug: p.slug, title: p.title, author_id: p.author_id, updated_at: p.updated_at
-        }));
+        const summaries = mockWikiPages.map(p => {
+          const author: any = mockPersons.find(person => person.id === p.author_id);
+          const author_name = p.author_id ? (author ? `${author.nombre || author.name || ''} ${author.apellido || author.surname || ''}`.trim() || 'Unknown User' : 'Unknown User') : 'System';
+          return {
+            id: p.id, slug: p.slug, title: p.title, author_id: p.author_id, updated_at: p.updated_at, author_name
+          };
+        });
         return new Response(JSON.stringify(summaries), { headers });
       }
 
       // POST /api/wiki — create a new wiki page
       if (request.method === 'POST' && url.pathname === '/api/wiki') {
         const body: any = await request.json();
-        
+
         // Ensure slug is clean
         const slug = body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -319,7 +332,7 @@ export default {
             console.error('Supabase wiki insert failed, falling back to mock:', err.message || err);
           }
         }
-        
+
         const newPage = {
           id: crypto.randomUUID(),
           slug,
@@ -341,15 +354,24 @@ export default {
           try {
             // Fetch page
             const { data: page, error: pageErr } = await supabase
-              .from('wiki_pages').select('*').eq('slug', slug).single();
+              .from('wiki_pages').select('*, personas(nombre, apellido)').eq('slug', slug).single();
             if (pageErr) throw pageErr;
+
+            page.author_name = page.author_id ? `${page.personas?.nombre || ''} ${page.personas?.apellido || ''}`.trim() || 'Unknown User' : 'System';
+            delete page.personas;
 
             // Fetch history
             const { data: history, error: histErr } = await supabase
-              .from('wiki_history').select('*').eq('page_id', page.id).order('created_at', { ascending: false });
+              .from('wiki_history').select('*, personas(nombre, apellido)').eq('page_id', page.id).order('created_at', { ascending: false });
             if (histErr) throw histErr;
 
-            return new Response(JSON.stringify({ ...page, history }), { headers });
+            const mappedHistory = history.map((h: any) => {
+              const author_name = h.author_id ? `${h.personas?.nombre || ''} ${h.personas?.apellido || ''}`.trim() || 'Unknown User' : 'System';
+              delete h.personas;
+              return { ...h, author_name };
+            });
+
+            return new Response(JSON.stringify({ ...page, history: mappedHistory }), { headers });
           } catch (err: any) {
             console.error('Supabase wiki fetch one failed, falling back to mock:', err.message || err);
           }
@@ -359,8 +381,17 @@ export default {
         if (!page) {
           return new Response(JSON.stringify({ error: 'Page not found' }), { status: 404, headers });
         }
-        const history = mockWikiHistory.filter(h => h.page_id === page.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        return new Response(JSON.stringify({ ...page, history }), { headers });
+
+        const author: any = mockPersons.find(person => person.id === page.author_id);
+        const author_name = page.author_id ? (author ? `${author.nombre || author.name || ''} ${author.apellido || author.surname || ''}`.trim() || 'Unknown User' : 'Unknown User') : 'System';
+
+        const history = mockWikiHistory.filter(h => h.page_id === page.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(h => {
+          const hAuthor: any = mockPersons.find(person => person.id === h.author_id);
+          const hAuthorName = h.author_id ? (hAuthor ? `${hAuthor.nombre || hAuthor.name || ''} ${hAuthor.apellido || hAuthor.surname || ''}`.trim() || 'Unknown User' : 'Unknown User') : 'System';
+          return { ...h, author_name: hAuthorName };
+        });
+
+        return new Response(JSON.stringify({ ...page, author_name, history }), { headers });
       }
 
       // PUT /api/wiki/:slug — update a wiki page
@@ -373,12 +404,20 @@ export default {
             // Note: Our Supabase Trigger handles saving the old content to history!
             const { data, error } = await supabase
               .from('wiki_pages')
-              .update({ title: body.title, content: body.content, author_id: body.authorId })
+              .update({ title: body.title, content: body.content, author_id: body.authorId || null })
               .eq('slug', slug)
-              .select()
-              .single();
+              .select('*, personas (nombre, otros_nombres, apellido, otros_apellidos)');
+
             if (error) throw error;
-            return new Response(JSON.stringify(data), { headers });
+            if (!data || data.length === 0) {
+              throw new Error("Update matched 0 rows. (Check RLS policies)");
+            }
+
+            const page = data[0];
+            page.author_name = page.author_id ? `${page.personas?.nombre || ''} ${page.personas?.otros_nombres || ''} ${page.personas?.apellido || ''} ${page.personas?.otros_apellidos || ''}`.trim() || 'Unknown User' : 'System';
+            delete page.personas;
+
+            return new Response(JSON.stringify(page), { headers });
           } catch (err: any) {
             console.error('Supabase wiki update failed, falling back to mock:', err.message || err);
           }
@@ -386,25 +425,25 @@ export default {
 
         const pageIndex = mockWikiPages.findIndex(p => p.slug === slug);
         if (pageIndex === -1) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
-        
+
         const oldPage = mockWikiPages[pageIndex];
-        
+
         // Mock Trigger logic: if content changed, save to history
         if (oldPage.content !== body.content) {
-           mockWikiHistory.push({
-             id: crypto.randomUUID(),
-             page_id: oldPage.id,
-             content: oldPage.content,
-             author_id: oldPage.author_id,
-             created_at: oldPage.updated_at
-           });
-           
-           // Keep only last 2
-           const pageHistory = mockWikiHistory.filter(h => h.page_id === oldPage.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-           if (pageHistory.length > 2) {
-              const toRemove = pageHistory.slice(2).map(h => h.id);
-              mockWikiHistory = mockWikiHistory.filter(h => !toRemove.includes(h.id));
-           }
+          mockWikiHistory.push({
+            id: crypto.randomUUID(),
+            page_id: oldPage.id,
+            content: oldPage.content,
+            author_id: oldPage.author_id,
+            created_at: oldPage.updated_at
+          });
+
+          // Keep only last 2
+          const pageHistory = mockWikiHistory.filter(h => h.page_id === oldPage.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          if (pageHistory.length > 2) {
+            const toRemove = pageHistory.slice(2).map(h => h.id);
+            mockWikiHistory = mockWikiHistory.filter(h => !toRemove.includes(h.id));
+          }
         }
 
         mockWikiPages[pageIndex] = {
@@ -417,7 +456,7 @@ export default {
 
         return new Response(JSON.stringify(mockWikiPages[pageIndex]), { headers });
       }
-      
+
       // POST /api/wiki/:slug/restore/:historyId - restore a specific history state
       const matchRestore = url.pathname.match(/^\/api\/wiki\/([^/]+)\/restore\/([^/]+)$/);
       if (request.method === 'POST' && matchRestore) {
@@ -430,18 +469,18 @@ export default {
             // 1. Get history item
             const { data: hist, error: histErr } = await supabase.from('wiki_history').select('*').eq('id', historyId).single();
             if (histErr) throw histErr;
-            
+
             // 2. Update page content
             // Our DB trigger will automatically save the *current* state as a new history item before this update applies!
             const { data: page, error: pageErr } = await supabase.from('wiki_pages').update({
-                content: hist.content,
-                author_id: body.authorId
+              content: hist.content,
+              author_id: body.authorId
             }).eq('slug', slug).select().single();
             if (pageErr) throw pageErr;
-            
+
             return new Response(JSON.stringify(page), { headers });
           } catch (err: any) {
-             console.error('Supabase wiki restore failed, falling back to mock:', err.message || err);
+            console.error('Supabase wiki restore failed, falling back to mock:', err.message || err);
           }
         }
 
@@ -453,26 +492,26 @@ export default {
 
         // Mock Trigger logic: save current to history before restoring
         if (oldPage.content !== histItem.content) {
-           mockWikiHistory.push({
-             id: crypto.randomUUID(),
-             page_id: oldPage.id,
-             content: oldPage.content,
-             author_id: oldPage.author_id,
-             created_at: oldPage.updated_at
-           });
-           // Keep only last 2
-           const pageHistory = mockWikiHistory.filter(h => h.page_id === oldPage.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-           if (pageHistory.length > 2) {
-              const toRemove = pageHistory.slice(2).map(h => h.id);
-              mockWikiHistory = mockWikiHistory.filter(h => !toRemove.includes(h.id));
-           }
+          mockWikiHistory.push({
+            id: crypto.randomUUID(),
+            page_id: oldPage.id,
+            content: oldPage.content,
+            author_id: oldPage.author_id,
+            created_at: oldPage.updated_at
+          });
+          // Keep only last 2
+          const pageHistory = mockWikiHistory.filter(h => h.page_id === oldPage.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          if (pageHistory.length > 2) {
+            const toRemove = pageHistory.slice(2).map(h => h.id);
+            mockWikiHistory = mockWikiHistory.filter(h => !toRemove.includes(h.id));
+          }
         }
 
         mockWikiPages[pageIndex] = {
-            ...oldPage,
-            content: histItem.content,
-            author_id: body.authorId || oldPage.author_id,
-            updated_at: new Date().toISOString()
+          ...oldPage,
+          content: histItem.content,
+          author_id: body.authorId || oldPage.author_id,
+          updated_at: new Date().toISOString()
         };
 
         return new Response(JSON.stringify(mockWikiPages[pageIndex]), { headers });
