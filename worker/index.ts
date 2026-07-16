@@ -400,24 +400,46 @@ export default {
         const slug = matchSlug[1];
         if (supabase) {
           try {
-            // Fetch page
+            // Fetch page (no join — resolve author separately to avoid FK alias issues)
             const { data: page, error: pageErr } = await supabase
-              .from('wiki_pages').select('*, personas(nombre, apellido)').eq('slug', slug).single();
+              .from('wiki_pages').select('*').eq('slug', slug).single();
             if (pageErr) throw pageErr;
 
-            page.author_name = page.author_id ? `${page.personas?.nombre || ''} ${page.personas?.apellido || ''}`.trim() || 'Unknown User' : 'System';
-            delete page.personas;
+            // Resolve author name via a separate personas lookup
+            if (page.author_id) {
+              const { data: persona } = await supabase
+                .from('personas')
+                .select('nombre, otros_nombres, apellido, otros_apellidos')
+                .eq('id', page.author_id)
+                .single();
+              page.author_name = persona
+                ? `${persona.nombre || ''} ${persona.otros_nombres || ''} ${persona.apellido || ''} ${persona.otros_apellidos || ''}`.trim() || 'Unknown User'
+                : 'Unknown User';
+            } else {
+              page.author_name = 'System';
+            }
 
             // Fetch history
             const { data: history, error: histErr } = await supabase
-              .from('wiki_history').select('*, personas(nombre, apellido)').eq('page_id', page.id).order('created_at', { ascending: false });
+              .from('wiki_history').select('*').eq('page_id', page.id).order('created_at', { ascending: false });
             if (histErr) throw histErr;
 
-            const mappedHistory = history.map((h: any) => {
-              const author_name = h.author_id ? `${h.personas?.nombre || ''} ${h.personas?.apellido || ''}`.trim() || 'Unknown User' : 'System';
-              delete h.personas;
-              return { ...h, author_name };
-            });
+            // Resolve history author names separately too
+            const mappedHistory = await Promise.all((history || []).map(async (h: any) => {
+              if (h.author_id) {
+                const { data: hPersona } = await supabase
+                  .from('personas')
+                  .select('nombre, otros_nombres, apellido, otros_apellidos')
+                  .eq('id', h.author_id)
+                  .single();
+                h.author_name = hPersona
+                  ? `${hPersona.nombre || ''} ${hPersona.otros_nombres || ''} ${hPersona.apellido || ''} ${hPersona.otros_apellidos || ''}`.trim() || 'Unknown User'
+                  : 'Unknown User';
+              } else {
+                h.author_name = 'System';
+              }
+              return h;
+            }));
 
             return new Response(JSON.stringify({ ...page, history: mappedHistory }), { headers });
           } catch (err: any) {
