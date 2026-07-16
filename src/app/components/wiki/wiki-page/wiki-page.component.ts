@@ -63,9 +63,11 @@ import DOMPurify from 'dompurify';
                 </mat-menu>
               }
               
-              <button mat-flat-button color="primary" (click)="toggleEdit()">
-                <mat-icon>edit</mat-icon> Edit
-              </button>
+              @if (authService.currentUser$ | async) {
+                <button mat-flat-button color="primary" (click)="toggleEdit()">
+                  <mat-icon>edit</mat-icon> Edit
+                </button>
+              }
             } @else {
               <button mat-button (click)="cancelEdit()">Cancel</button>
               <button mat-flat-button color="primary" (click)="savePage()">

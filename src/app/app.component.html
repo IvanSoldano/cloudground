@@ -32,15 +32,23 @@
       <span class="edge-pill">Edge Native</span>
       
       @if (authService.currentUser$ | async; as user) {
-        <button mat-button [matMenuTriggerFor]="userMenu" style="color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;">
-          <mat-icon>account_circle</mat-icon> {{ user.email }}
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+          <mat-icon>account_circle</mat-icon> {{ user.name || user.email }}
         </button>
         <mat-menu #userMenu="matMenu">
+          <button mat-menu-item routerLink="/profile" disabled>
+            <mat-icon>settings</mat-icon>
+            <span>Profile Configuration</span>
+          </button>
           <button mat-menu-item (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
             <span>Logout</span>
           </button>
         </mat-menu>
+      } @else {
+        <button mat-button routerLink="/login" class="user-btn">
+          <mat-icon>login</mat-icon> Sign In
+        </button>
       }
     </div>
   </div>

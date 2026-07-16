@@ -109,6 +109,23 @@
   align-items: center;
 }
 
+.user-btn {
+  color: var(--mat-sys-primary) !important;
+  border: 1px solid var(--mat-sys-primary) !important;
+  border-radius: 20px !important;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.08) !important;
+    border-color: var(--mat-sys-primary) !important;
+  }
+}
+
 .edge-pill {
   font-size: 0.75rem;
   font-weight: 600;

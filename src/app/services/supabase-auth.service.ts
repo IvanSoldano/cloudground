@@ -40,13 +40,23 @@ export class SupabaseAuthService implements AuthService {
     // Fetch the user's role from the custom profiles table
     const { data: profile } = await this.supabase
       .from('profiles')
-      .select('role, status, persona_id')
+      .select('role, status, persona_id, personas(nombre, otros_nombres, apellido, otros_apellidos)')
       .eq('id', supabaseUser.id)
       .single();
+
+    let name = supabaseUser.user_metadata?.['full_name'] || supabaseUser.user_metadata?.['name'] || supabaseUser.email?.split('@')[0] || 'User';
+    if (profile?.personas) {
+      const p = profile.personas as any;
+      const personaName = `${p.nombre || ''} ${p.otros_nombres || ''} ${p.apellido || ''} ${p.otros_apellidos || ''}`.trim();
+      if (personaName) {
+        name = personaName;
+      }
+    }
 
     const user: User = {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
+      name: name,
       role: profile?.role || 'pending', // Default to pending if no profile or role found
       status: profile?.status || 'pending',
       persona_id: profile?.persona_id || null
@@ -90,9 +100,11 @@ export class SupabaseAuthService implements AuthService {
 
   async logout(): Promise<void> {
     localStorage.removeItem('dev_bypass');
-    const { error } = await this.supabase.auth.signOut();
-    if (error) throw error;
     this.currentUserSubject.next(null);
+    const { error } = await this.supabase.auth.signOut({ scope: 'local' });
+    if (error) {
+      console.warn('Logout API error (session cleared locally):', error.message);
+    }
   }
 
   async getSession(): Promise<any> {
@@ -114,6 +126,7 @@ export class SupabaseAuthService implements AuthService {
     const mockUser: User = {
       id: 'dev-bypass-user',
       email: 'dev@localhost',
+      name: 'Dev User',
       role: 'admin',
       status: 'approved'
     };

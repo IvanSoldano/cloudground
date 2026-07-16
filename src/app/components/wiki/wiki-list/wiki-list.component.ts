@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { WikiService } from '../../../services/wiki.service';
+import { AuthService } from '../../../services/auth.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -14,9 +15,11 @@ import { MatCardModule } from '@angular/material/card';
     <div class="wiki-container">
       <div class="header">
         <h1>Wiki Pages</h1>
-        <button mat-flat-button color="primary" routerLink="/wiki/new/edit">
-          <mat-icon>add</mat-icon> New Page
-        </button>
+        @if (authService.currentUser$ | async) {
+          <button mat-flat-button color="primary" routerLink="/wiki/new">
+            <mat-icon>add</mat-icon> New Page
+          </button>
+        }
       </div>
 
       <div class="page-grid">
@@ -30,7 +33,7 @@ import { MatCardModule } from '@angular/material/card';
                 <mat-card-subtitle>Updated: {{ page.updated_at | date:'short' }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>
-                <p class="author-info">By Author: {{ page.author_id }}</p>
+                <p class="author-info">By: {{ page.author_name || 'Unknown' }}</p>
               </mat-card-content>
             </mat-card>
           }
@@ -87,6 +90,7 @@ import { MatCardModule } from '@angular/material/card';
 })
 export class WikiListComponent implements OnInit {
   wikiService = inject(WikiService);
+  authService = inject(AuthService);
 
   ngOnInit() {
     this.wikiService.loadPages();

@@ -88,7 +88,55 @@ export default {
     const url = new URL(request.url);
 
     // -------------------------------------------------------------------------
-    // TASK API ROUTES
+    // PEOPLE API ROUTES  (/api/people — used by the Angular frontend)
+    // -------------------------------------------------------------------------
+    if (url.pathname.startsWith('/api/people')) {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': '*'
+      };
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers });
+      }
+
+      // DELETE /api/people/:id
+      const deleteMatch = url.pathname.match(/^\/api\/people\/([^/]+)$/);
+      if (request.method === 'DELETE' && deleteMatch) {
+        const id = deleteMatch[1];
+        mockPeople = mockPeople.filter(p => p.id !== id);
+        mockPersons = mockPeople;
+        return new Response(JSON.stringify({ success: true }), { headers });
+      }
+
+      // GET /api/people
+      if (request.method === 'GET') {
+        return new Response(JSON.stringify(mockPeople), { headers });
+      }
+
+      // POST /api/people
+      if (request.method === 'POST') {
+        const body: any = await request.json();
+        const newPerson: any = {
+          id: crypto.randomUUID(),
+          name: body.name || `${body.surname || ''}`.trim(),
+          surname: body.surname,
+          email: body.email,
+          role: body.role,
+          dni: body.dni,
+          cuil: body.cuil,
+          avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(body.name || body.surname || 'User')}`
+        };
+        mockPeople = [...mockPeople, newPerson];
+        mockPersons = mockPeople;
+        return new Response(JSON.stringify(newPerson), { status: 201, headers });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // PERSONS API ROUTES  (/api/persons — legacy)
     // -------------------------------------------------------------------------
     if (url.pathname.startsWith('/api/persons')) {
       const headers = { 'Content-Type': 'application/json' };
